@@ -7,11 +7,15 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.validation.Valid;
 
 @Controller
 @RequestMapping("/patients")
 public class PatientController {
+    
+    private static final Logger logger = LoggerFactory.getLogger(PatientController.class);
 
     @Autowired
     private PatientService patientService;
@@ -29,36 +33,53 @@ public class PatientController {
     }
 
     @PostMapping
-    public String createPatient(@Valid @ModelAttribute("patient") Patient patient, 
-                              BindingResult result) {
+    public String savePatient(@Valid @ModelAttribute("patient") Patient patient, 
+                            BindingResult result,
+                            Model model) {
+        logger.debug("Received patient data: {}", patient);
+        
         if (result.hasErrors()) {
+            logger.error("Validation errors: {}", result.getAllErrors());
             return "patient/form";
         }
-        patientService.createPatient(patient);
-        return "redirect:/patients";
+        
+        try {
+            if (patient.getId() == null) {
+                logger.debug("Creating new patient");
+                patientService.createPatient(patient);
+            } else {
+                logger.debug("Updating existing patient with id: {}", patient.getId());
+                patientService.updatePatient(patient.getId(), patient);
+            }
+            return "redirect:/patients";
+        } catch (Exception e) {
+            logger.error("Error saving patient: ", e);
+            model.addAttribute("error", "Error saving patient: " + e.getMessage());
+            return "patient/form";
+        }
     }
 
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {
-        model.addAttribute("patient", patientService.getPatientById(id));
-        return "patient/form";
-    }
-
-    @PostMapping("/{id}")
-    public String updatePatient(@PathVariable Long id, 
-                              @Valid @ModelAttribute("patient") Patient patient,
-                              BindingResult result) {
-        if (result.hasErrors()) {
+        try {
+            Patient patient = patientService.getPatientById(id);
+            model.addAttribute("patient", patient);
             return "patient/form";
+        } catch (Exception e) {
+            logger.error("Error fetching patient: ", e);
+            return "redirect:/patients";
         }
-        patientService.updatePatient(id, patient);
-        return "redirect:/patients";
     }
 
     @GetMapping("/delete/{id}")
     public String deletePatient(@PathVariable Long id) {
-        patientService.deletePatient(id);
-        return "redirect:/patients";
+        try {
+            patientService.deletePatient(id);
+            return "redirect:/patients";
+        } catch (Exception e) {
+            logger.error("Error deleting patient: ", e);
+            return "redirect:/patients";
+        }
     }
 
     // REST endpoints

@@ -24,18 +24,21 @@ public class Appointment {
     private Doctor doctor;
 
     @NotNull(message = "Appointment date and time is required")
+    @Column(name = "appointment_datetime")
     private LocalDateTime appointmentDateTime;
 
-    private String reason;
+    @Column(name = "reason_for_visit")
+    private String reasonForVisit;
 
+    @Column(name = "status")
     @Enumerated(EnumType.STRING)
-    private AppointmentStatus status;
+    private AppointmentStatus status = AppointmentStatus.SCHEDULED;
 
     private String notes;
-}
 
-enum AppointmentStatus {
-    SCHEDULED,
-    COMPLETED,
-    CANCELLED
+    public enum AppointmentStatus {
+        SCHEDULED,
+        COMPLETED,
+        CANCELLED
+    }
 } 

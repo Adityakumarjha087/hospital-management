@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Appointment List</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Appointment List</h2>
+            <a th:href="@{/appointments/new}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Schedule New Appointment
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Patient</th>
+                                <th>Doctor</th>
+                                <th>Date & Time</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="appointment : ${appointments}">
+                                <td th:text="${appointment.id}"></td>
+                                <td th:text="${appointment.patient.firstName + ' ' + appointment.patient.lastName}"></td>
+                                <td th:text="${appointment.doctor.firstName + ' ' + appointment.doctor.lastName + ' (' + appointment.doctor.specialization + ')'}"></td>
+                                <td th:text="${#temporals.format(appointment.appointmentDateTime, 'yyyy-MM-dd HH:mm')}"></td>
+                                <td th:text="${appointment.reason}"></td>
+                                <td>
+                                    <span th:class="${'badge ' + 
+                                        (appointment.status == T(com.hospital.model.AppointmentStatus).SCHEDULED ? 'bg-primary' : 
+                                         appointment.status == T(com.hospital.model.AppointmentStatus).COMPLETED ? 'bg-success' : 'bg-danger')}"
+                                          th:text="${appointment.status}">
+                                    </span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/appointments/edit/{id}(id=${appointment.id})}" 
+                                       class="btn btn-sm btn-info">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <a th:href="@{/appointments/delete/{id}(id=${appointment.id})}"
+                                       class="btn btn-sm btn-danger"
+                                       onclick="return confirm('Are you sure you want to delete this appointment?')">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 
